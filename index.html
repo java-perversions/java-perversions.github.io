@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Title</title>
+    <meta charset="utf-8">
+    <style>
+      @import url(https://fonts.googleapis.com/css?family=Yanone+Kaffeesatz);
+      @import url(https://fonts.googleapis.com/css?family=Droid+Serif:400,700,400italic);
+      @import url(https://fonts.googleapis.com/css?family=Ubuntu+Mono:400,700,400italic);
+
+      body { font-family: 'Droid Serif'; }
+      h1, h2, h3 {
+        font-family: 'Yanone Kaffeesatz';
+        font-weight: normal;
+      }
+      .remark-code, .remark-inline-code { font-family: 'Ubuntu Mono'; }
+    </style>
+  </head>
+  <body>
+    <textarea id="source">
+
+class: center, middle
+
+# Functional programming in Java 8
+
+Functional programming is all about calling functions.
+
+The more functions you call, the more functional your code.
+
+---
+# String concatenation
+
+#### Imperative
+```java
+return scheme + "://" + host + ":" + port;
+```
+
+#### Functional
+```java
+return Optional
+                .of(scheme)
+                .map(w -> w + "://")
+                .map(w -> w + host)
+                .map(w -> w + ":")
+                .map(w -> w + port)
+                .orElse("");
+```
+6 more function calls!
+
+---
+# if & the ternary operator
+
+#### Imperative
+
+```java
+return s.endsWith(".") ? s : s + ".";
+```
+
+#### Functional
+```java
+return Optional
+        .of(s.endsWith("."))
+        .filter(Boolean.TRUE::equals)
+        .map(unused -> s)
+        .orElse(s + ".");
+```
+**if** and the ternary operator (**?:**) are not functions, so avoid as much as possible
+
+---
+
+# Builders
+
+Use the Builder pattern for every class. Even if the class has just one field.
+
+This allows you to:
+* squeeze some extra function calls when instantiating the class
+* minimize the use of the foul new operator (which totally doesn't look like a function call)
+
+#### Without the Builder pattern
+```java
+new InvalidHostException(s)
+```
+
+#### With the Builder pattern
+```java
+InvalidHostException
+        .builder()
+        .invalidHost(s)
+        .build()
+```
+
+---
+
+# Builders (cont)
+
+```java
+public class InvalidHostException extends RuntimeException {
+    private String invalidHost;
+
+    private InvalidHostException() {}
+
+    public String getInvalidHost() { return invalidHost; }
+
+    public static Builder builder() { return new Builder(); }
+
+    public static class Builder {
+        private final InvalidHostException invalidHostException = new InvalidHostException();
+
+        private Builder() {}
+
+        public Builder invalidHost(String InvalidHost) {
+            invalidHostException.invalidHost = InvalidHost;
+            return this;
+        }
+
+        public InvalidHostException build() { return invalidHostException; }
+    }
+}
+```
+
+---
+
+# Getting the first element of a collection
+
+#### Imperative
+
+```java
+public static <T> T firstOrNull(Collection<T> collection) {
+    return collection.isEmpty() ? null : collection.iterator().next();
+}
+```
+
+#### Functional
+```java
+public static <T> T firstOrNull(Collection<T> collection) {
+    return Optional
+            .ofNullable(collection)
+            .map(nonEmptyCollection ->
+                    nonEmptyCollection
+                            .parallelStream()
+                            .findFirst()
+                            .orElse(null))
+            .orElse(null);
+}
+```
+Note that this is not only more functional, but it's also more efficient since the search for the first element is parallelized.
+
+---
+
+# Function calls
+
+#### Imperative
+```java
+public int add(int a, int b, int c) {
+    return a + b + c;
+}
+
+add(a, b, c);
+```
+
+#### Functional
+Q: What can be more functional than a function call?
+
+A: More function calls!
+
+(see next slide)
+
+---
+
+```java
+@FunctionalInterface
+interface Function<T, R> {
+    R apply(T arg1);
+    default Supplier<R> arg(T arg1) {
+        return () -> apply(arg1);
+    }
+}
+
+@FunctionalInterface
+interface BiFunction<T, U, R> {
+    R apply(T arg1, U arg2);
+    default Function<U, R> arg(T arg1) {
+        return arg2 -> apply(arg1, arg2);
+    }
+}
+
+@FunctionalInterface
+interface TriFunction<T, U, V, R> {
+    R apply(T arg1, U arg2, V arg3);
+    default BiFunction<U, V, R> arg(T arg1) {
+        return (arg2, arg3) -> apply(arg1, arg2, arg3);
+    }
+}
+
+public TriFunction<Integer, Integer, Integer, Integer> add() {
+    return (a, b, c) -> a + b + c;
+}
+
+fadd()
+        .arg(1)
+        .arg(1)
+        .arg(1)
+        .get();
+```
+
+---
+
+.center[![Centered-aligned image](doge_functional.png)]
+
+---
+# Recap
+
+* the code should consist mostly of chained calls
+* never use *if*, *the ternary operator*, *for* or *while*
+* use *Optional* everywhere
+* always make your named functions no-arg and have them return anonymous functions that implement the actual logic
+* always use *.parallelStream()* on collections
+* always use the *Builder pattern*
+
+
+    </textarea>
+    <script src="https://remarkjs.com/downloads/remark-latest.min.js">
+    </script>
+    <script>
+      var slideshow = remark.create();
+    </script>
+  </body>
+</html>
