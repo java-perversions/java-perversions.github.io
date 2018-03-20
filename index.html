@@ -48,6 +48,25 @@ return Optional
 6 more function calls!
 
 ---
+# the == operator
+
+#### Imperative
+
+```java
+timeUnit == TimeUnit.DAYS
+```
+
+#### Functional
+```java
+Optional
+        .of(timeUnit)
+        .filter(TimeUnit.DAYS::equals)
+        .isPresent();
+```
+
+**==** doesn't look like a function call so it's totally not functional
+
+---
 # if & the ternary operator
 
 #### Imperative
