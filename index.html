@@ -166,6 +166,25 @@ Note that this is not only more functional, but it's also more efficient since t
 
 ---
 
+# Creating a guava ImmutableList
+
+#### Functional
+```java
+ImmutableList.of(1, 2, 3)
+```
+
+#### Waaay more Functional
+```java
+ImmutableList
+        .builder()
+        .add(1)
+        .add(2)
+        .add(3)
+        .build()
+```
+
+---
+
 # Function calls
 
 #### Imperative
